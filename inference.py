@@ -100,11 +100,11 @@ def visualize_pairs(pcds):
 
 
 if __name__ == '__main__':
-    visalize_middle = False
+    visalize_middle = True
     # read data
-    root = 'data/refrigerator_b005-0001_pcd'
-    frame1 = '00012'
-    frame2 = '00005'
+    root = 'data'
+    frame1 = '00002'
+    frame2 = '00000'
 
     pcd1 = o3d.io.read_point_cloud(f'{root}/{frame1}.pcd')
     pcd2 = o3d.io.read_point_cloud(f'{root}/{frame2}.pcd')
@@ -113,6 +113,7 @@ if __name__ == '__main__':
     original_pcd2 = o3d.geometry.PointCloud(pcd2)
 
     if visalize_middle:
+        print(len(original_pcd1.points), len(original_pcd2.points))
         visualize_pairs([original_pcd1, original_pcd2])
 
     pc1 = np.asarray(pcd1.points)
@@ -134,6 +135,7 @@ if __name__ == '__main__':
     src_pcd = sum_downsample_points([pcd1], 0.02, 50, 0.1)
     dst_pcd = sum_downsample_points([pcd2], 0.02, 50, 0.1)
     if visalize_middle:
+        print(len(src_pcd.points), len(dst_pcd.points))
         visualize_pairs([src_pcd, dst_pcd])
 
     with initialize(config_path='configs/'):
@@ -168,12 +170,19 @@ if __name__ == '__main__':
 
     pc_start, _ = sample_point_cloud(pc_start, 8192)
     pc_end, _ = sample_point_cloud(pc_end, 8192)
+
+    print(len(pc_start), len(pc_end))
     sample = {
         'pc_start': torch.from_numpy(pc_start).unsqueeze(0).to(device).float(),
         'pc_end': torch.from_numpy(pc_end).unsqueeze(0).to(device).float()
     }
 
-    mesh_dict, mobile_points_all, c, stats_dict = generator.generate_mesh(sample)
+    while True:
+        print("Running")
+        mesh_dict, mobile_points_all, c, stats_dict = generator.generate_mesh(sample)
+        if mobile_points_all.size(1) != 0:
+            break
+    
     with torch.no_grad():
         joint_type_logits, joint_param_revolute, joint_param_prismatic = model.model.decode_joints(mobile_points_all, c)
 

@@ -254,10 +254,14 @@ def normalize_coordinate(p, padding=0.1, plane="xz"):
     xy_new = xy_new + 0.5  # range (0, 1)
 
     # f there are outliers out of the range
-    if xy_new.max() >= 1:
-        xy_new[xy_new >= 1] = 1 - 10e-6
-    if xy_new.min() < 0:
-        xy_new[xy_new < 0] = 0.0
+    try:
+        if xy_new.max() >= 1:
+            xy_new[xy_new >= 1] = 1 - 10e-6
+        if xy_new.min() < 0:
+            xy_new[xy_new < 0] = 0.0
+    except:
+        import pdb
+        pdb.set_trace()
     return xy_new
 
 
